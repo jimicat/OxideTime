@@ -1,8 +1,9 @@
 use crate::db::{self, SessionFilter, SessionItem};
 use crate::model::TrackerStatus;
 use crate::state::AppState;
-use axum::extract::{Path, Query, State};
-use axum::http::{header, StatusCode};
+use axum::extract::{Path, Query, Request, State};
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::middleware::{self, Next};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::{Json, Router};
@@ -56,7 +57,53 @@ pub fn router(state: AppState) -> Router {
         .route("/api/status", get(status))
         .route("/api/export.csv", get(export_csv))
         .route("/api/icons/{key}", get(icon))
+        .layer(middleware::from_fn(security_headers))
+        .layer(middleware::from_fn(guard_host))
         .with_state(state)
+}
+
+async fn guard_host(request: Request, next: Next) -> Response {
+    let host_ok = request
+        .headers()
+        .get(header::HOST)
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+        .is_some_and(|host| {
+            host == "127.0.0.1"
+                || host == "localhost"
+                || host.starts_with("127.0.0.1:")
+                || host.starts_with("localhost:")
+        });
+    if !host_ok {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    next.run(request).await
+}
+
+async fn security_headers(request: Request, next: Next) -> Response {
+    let is_api = request.uri().path().starts_with("/api/");
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+    headers.insert(
+        header::X_CONTENT_TYPE_OPTIONS,
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(
+        header::REFERRER_POLICY,
+        HeaderValue::from_static("no-referrer"),
+    );
+    headers.insert(
+        header::CONTENT_SECURITY_POLICY,
+        HeaderValue::from_static(
+            "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; \
+             img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; \
+             form-action 'none'; frame-ancestors 'none'",
+        ),
+    );
+    if is_api {
+        headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    }
+    response
 }
 
 async fn index() -> Html<&'static str> {
@@ -307,11 +354,21 @@ async fn export_csv(
 }
 
 fn csv_escape(value: &str) -> String {
-    if value.contains([',', '"', '\n', '\r']) {
-        format!("\"{}\"", value.replace('"', "\"\""))
-    } else {
-        value.to_string()
+    let mut out = String::new();
+    if matches!(
+        value.trim_start().chars().next(),
+        Some('=' | '+' | '-' | '@' | '\t' | '\r')
+    ) {
+        out.push('\'');
     }
+    if value.contains([',', '"', '\n', '\r']) {
+        out.push('"');
+        out.push_str(&value.replace('"', "\"\""));
+        out.push('"');
+    } else {
+        out.push_str(value);
+    }
+    out
 }
 
 fn timestamp(ms: i64, with_date: bool) -> String {

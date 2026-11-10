@@ -155,14 +155,14 @@ fn front_window_owner() -> Option<(i32, String)> {
 
         for window in windows.iter() {
             let layer = window
-                .find(&CFString::new("kCGWindowLayer"))
+                .find(CFString::new("kCGWindowLayer"))
                 .and_then(|value| value.downcast::<CFNumber>())
                 .and_then(|number| number.to_i64());
             if layer != Some(0) {
                 continue;
             }
             let alpha = window
-                .find(&CFString::new("kCGWindowAlpha"))
+                .find(CFString::new("kCGWindowAlpha"))
                 .and_then(|value| value.downcast::<CFNumber>())
                 .and_then(|number| number.to_f64())
                 .unwrap_or(1.0);
@@ -170,7 +170,7 @@ fn front_window_owner() -> Option<(i32, String)> {
                 continue;
             }
             let Some(pid) = window
-                .find(&CFString::new("kCGWindowOwnerPID"))
+                .find(CFString::new("kCGWindowOwnerPID"))
                 .and_then(|value| value.downcast::<CFNumber>())
                 .and_then(|number| number.to_i64())
             else {
@@ -180,7 +180,7 @@ fn front_window_owner() -> Option<(i32, String)> {
                 continue;
             }
             let name = window
-                .find(&CFString::new("kCGWindowOwnerName"))
+                .find(CFString::new("kCGWindowOwnerName"))
                 .and_then(|value| value.downcast::<CFString>())
                 .map(|name| name.to_string())
                 .unwrap_or_default();

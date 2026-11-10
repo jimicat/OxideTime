@@ -34,6 +34,11 @@ pub fn open(path: &Path) -> Result<Connection> {
             .with_context(|| format!("create data dir {}", parent.display()))?;
     }
     let conn = Connection::open(path).with_context(|| format!("open {}", path.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+    }
     conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=3000;")?;
     conn.execute_batch(SCHEMA)?;
     Ok(conn)

@@ -14,6 +14,8 @@ async fn main() -> anyhow::Result<()> {
     let cfg = config::Config::load();
     std::fs::create_dir_all(&cfg.data_dir)?;
     std::fs::create_dir_all(cfg.icon_dir())?;
+    restrict_dir(&cfg.data_dir);
+    restrict_dir(&cfg.icon_dir());
 
     let conn = db::open(&cfg.db_path())?;
     let demo_seeded = match cfg.demo {
@@ -99,6 +101,28 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn shutdown_signal() {
-    let _ = tokio::signal::ctrl_c().await;
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut signal) => {
+                signal.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
     println!("\n正在停止…");
+}
+
+fn restrict_dir(path: &std::path::Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700));
+    }
 }

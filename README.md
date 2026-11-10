@@ -42,7 +42,7 @@ brew trust jimicat/oxidetime
 brew install oxidetime
 ```
 
-Homebrew 会从源码编译安装（自动安装 Rust 构建依赖）。安装后：
+Homebrew 会下载对应架构的预编译二进制（Apple Silicon / Intel），无需本地安装 Rust。安装后：
 
 ```bash
 oxidetime                       # 前台运行，打开 http://127.0.0.1:4321
@@ -71,6 +71,8 @@ cargo run --release -- --port 4321
 - **通过 `brew services` 运行**：在辅助功能列表中点击「+」，添加 `/opt/homebrew/opt/oxidetime/bin/oxidetime`，然后执行 `brew services restart oxidetime`
 
 未授权时应用名与使用时长仍会正常记录。
+
+> `brew upgrade` 会替换二进制文件，系统可能因此撤销原有授权。若升级后窗口标题不再记录，请在辅助功能列表中移除旧的 `oxidetime` 条目，再按上面的步骤重新授权并重启服务。
 
 ### 演示模式
 

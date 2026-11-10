@@ -107,6 +107,15 @@ function bindEvents() {
   });
 
   $('#appList').addEventListener('click', onAppClick);
+
+  document.addEventListener(
+    'error',
+    (event) => {
+      const target = event.target;
+      if (target instanceof HTMLImageElement && target.dataset.avatar) target.remove();
+    },
+    true,
+  );
 }
 
 function onDateChange(event) {
@@ -600,7 +609,7 @@ function appKey(app) {
 function avatarHTML(app, extra = '') {
   const key = appKey(app) || 'unknown';
   const src = `/api/icons/${encodeURIComponent(key)}?v=2`;
-  return `<span class="avatar ${extra}"><img src="${src}" alt="" loading="lazy" onerror="this.remove()"></span>`;
+  return `<span class="avatar ${extra}"><img src="${src}" alt="" loading="lazy" data-avatar="1"></span>`;
 }
 
 function esc(value) {
