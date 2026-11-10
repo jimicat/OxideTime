@@ -1,8 +1,9 @@
 class Oxidetime < Formula
   desc "Local macOS app usage tracker with a built-in web dashboard"
   homepage "https://github.com/jimicat/OxideTime"
-  version "0.1.2"
   license "MIT"
+
+  depends_on :macos
 
   on_arm do
     url "https://github.com/jimicat/OxideTime/releases/download/v0.1.2/oxidetime-0.1.2-aarch64-apple-darwin.tar.gz"
@@ -13,8 +14,6 @@ class Oxidetime < Formula
     url "https://github.com/jimicat/OxideTime/releases/download/v0.1.2/oxidetime-0.1.2-x86_64-apple-darwin.tar.gz"
     sha256 "e5e86744f1465566d97f9cdebd8095b4c2fc73a29807e0067ac189044c5c2940"
   end
-
-  depends_on :macos
 
   def install
     bin.install "oxidetime"
