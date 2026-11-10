@@ -38,6 +38,7 @@ OxideTime 每 2 秒采样一次当前前台应用，把使用过程整理成会�
 
 ```bash
 brew tap jimicat/oxidetime https://github.com/jimicat/OxideTime.git
+brew trust jimicat/oxidetime
 brew install oxidetime
 ```
 
