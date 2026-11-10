@@ -1,9 +1,9 @@
 class Oxidetime < Formula
   desc "Local macOS app usage tracker with a built-in web dashboard"
   homepage "https://github.com/jimicat/OxideTime"
-  url "https://github.com/jimicat/OxideTime/archive/6f297209ca4d9c6f6bca4a849f1e1613b3dfb033.tar.gz"
+  url "https://github.com/jimicat/OxideTime/archive/fc380d721fd51d682dc425446f123a3639c9f2d1.tar.gz"
   version "0.1.0"
-  sha256 "ff7b3ca0a2fb040e48d99bfa927a2dad0427031e8e4b03acdc34df04ee8f7062"
+  sha256 "2b66cac6b89a030024dbc987ff2e1ca383cae7521ff1b75f1a89d91041f8db29"
   license "MIT"
 
   depends_on "rust" => :build
