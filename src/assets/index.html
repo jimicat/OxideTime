@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OxideTime · Mac 使用追踪</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230a0a0a'/><circle cx='32' cy='32' r='19' fill='none' stroke='%23ff9538' stroke-width='4'/><path d='M32 21v13l8 5' stroke='%23a1a1aa' stroke-width='4' stroke-linecap='round' fill='none'/></svg>" />
+<link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="12" cy="12" r="8.5"></circle>
+          <path d="M12 7.5v5l3.2 2"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>OxideTime</h1>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="seg" id="rangeSeg" role="group" aria-label="时间范围">
+        <button data-range="today" class="active">今日</button>
+        <button data-range="yesterday">昨日</button>
+        <button data-range="7d">近 7 天</button>
+        <button data-range="30d">近 30 天</button>
+      </div>
+
+      <div class="date-range">
+        <input type="date" id="fromDate" aria-label="开始日期" />
+        <span class="arrow">→</span>
+        <input type="date" id="toDate" aria-label="结束日期" />
+      </div>
+
+      <button class="btn ghost" id="exportBtn" title="导出当前筛选条件下的明细">导出 CSV</button>
+      <button class="btn primary" id="refreshBtn" title="立即刷新">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M20 11a8 8 0 1 0-2.3 6.3"></path><path d="M20 5v6h-6"></path>
+        </svg>
+        <span>刷新</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="banner" id="axBanner" hidden>
+    <div class="banner-icon" aria-hidden="true">!</div>
+    <div class="banner-copy">
+      <strong>窗口标题暂不可用</strong>
+      <p>请在「系统设置 → 隐私与安全性 → 辅助功能」中允许运行 OxideTime 的终端，重启后生效。应用名与时长仍会正常记录。</p>
+    </div>
+    <button class="btn ghost small" id="dismissBanner">知道了</button>
+  </div>
+
+  <section class="stats" aria-label="概览">
+    <article class="stat">
+      <span class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"></circle><path d="M12 7.6v4.8l3 1.9"></path></svg>
+      </span>
+      <div class="stat-body">
+        <span class="stat-label">总使用时长</span>
+        <strong class="stat-value" id="statTotal">—</strong>
+        <span class="stat-sub" id="statTotalSub">—</span>
+      </div>
+    </article>
+
+    <article class="stat">
+      <span class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="2"></rect></svg>
+      </span>
+      <div class="stat-body">
+        <span class="stat-label">活跃应用</span>
+        <strong class="stat-value" id="statApps">—</strong>
+        <span class="stat-sub" id="statAppsSub">—</span>
+      </div>
+    </article>
+
+    <article class="stat">
+      <span class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4 3.8 19.5h16.4L12 4Z"></path><path d="M8.5 13.5h7"></path></svg>
+      </span>
+      <div class="stat-body">
+        <span class="stat-label">会话次数</span>
+        <strong class="stat-value" id="statSessions">—</strong>
+        <span class="stat-sub" id="statSessionsSub">—</span>
+      </div>
+    </article>
+
+    <article class="stat">
+      <span class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.5v2.8M12 17.7v2.8M3.5 12h2.8M17.7 12h2.8M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"></path><circle cx="12" cy="12" r="3.4"></circle></svg>
+      </span>
+      <div class="stat-body">
+        <span class="stat-label">最活跃时段</span>
+        <strong class="stat-value value-sm" id="statPeak">—</strong>
+        <span class="stat-sub" id="statPeakSub">—</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="layout">
+    <article class="card app-card">
+      <header class="card-head">
+        <div>
+          <h2>应用排行</h2>
+          <p id="appSub">—</p>
+        </div>
+        <button class="chip" id="resetFilter" hidden>显示全部</button>
+      </header>
+      <div class="app-list" id="appList"></div>
+    </article>
+
+    <article class="card hour-card">
+      <header class="card-head">
+        <div>
+          <h2>时段分布</h2>
+          <p>按小时累计前台使用时长</p>
+        </div>
+        <span class="badge" id="hourPeak">—</span>
+      </header>
+      <div class="hour-chart" id="hourChart"></div>
+    </article>
+
+    <article class="card heat-card">
+      <header class="card-head">
+        <div>
+          <h2>活跃热力图</h2>
+          <p>颜色越亮，使用时间越长</p>
+        </div>
+        <div class="seg mini" id="heatSeg" role="group" aria-label="热力图天数">
+          <button data-days="7">7 天</button>
+          <button data-days="14" class="active">14 天</button>
+          <button data-days="30">30 天</button>
+        </div>
+      </header>
+      <div class="heat-scroll">
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+    </article>
+
+    <article class="card table-card">
+      <header class="card-head table-head">
+        <div>
+          <h2>使用明细</h2>
+          <p id="sessionsSub">—</p>
+        </div>
+        <div class="table-tools">
+          <select id="appFilter" aria-label="按应用筛选">
+            <option value="">全部应用</option>
+          </select>
+          <label class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+            <input id="searchInput" type="search" placeholder="搜索应用 / 窗口标题" autocomplete="off" />
+          </label>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>应用 / 窗口</th>
+              <th class="num">开始</th>
+              <th class="num">结束</th>
+              <th class="num">时长</th>
+            </tr>
+          </thead>
+          <tbody id="sessionRows"></tbody>
+        </table>
+        <div class="empty" id="emptyState" hidden>
+          <div class="empty-mark">◌</div>
+          <p>这个区间还没有使用记录</p>
+          <span>保持 OxideTime 运行，切换几个应用试试</span>
+        </div>
+      </div>
+
+      <footer class="table-foot">
+        <span class="muted" id="pageInfo">—</span>
+        <div class="pager">
+          <button class="btn ghost small" id="prevPage">上一页</button>
+          <button class="btn ghost small" id="nextPage">下一页</button>
+        </div>
+      </footer>
+    </article>
+  </section>
+
+  <footer class="foot">
+    <span id="updatedAt">—</span>
+  </footer>
+</main>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>
