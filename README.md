@@ -6,10 +6,6 @@ OxideTime 每 2 秒采样一次当前前台应用，把使用过程整理成会�
 
 ![OxideTime 看板（近 30 天）](docs/screenshots/dashboard-30d.png)
 
-<p align="center">
-  <img src="docs/screenshots/dashboard-mobile.png" width="300" alt="移动端布局" />
-</p>
-
 ## 功能
 
 - **前台应用追踪**：AX API 优先识别前台应用，`CGWindowList` 作为兜底，应用切换即时生效
@@ -36,7 +32,27 @@ OxideTime 每 2 秒采样一次当前前台应用，把使用过程整理成会�
 | 时间 | chrono（本地时区日期与小时分桶） |
 | 前端 | 原生 HTML / CSS / JavaScript，Geist 字体，资源通过 `include_str!` 内嵌进二进制 |
 
-## 快速开始
+## 安装
+
+### Homebrew
+
+```bash
+brew tap jimicat/oxidetime https://github.com/jimicat/OxideTime.git
+brew install oxidetime
+```
+
+Homebrew 会从源码编译安装（自动安装 Rust 构建依赖）。安装后：
+
+```bash
+oxidetime                       # 前台运行，打开 http://127.0.0.1:4321
+brew services start oxidetime   # 或注册为登录时启动的后台服务
+```
+
+常用命令：`brew services stop oxidetime`、`brew services restart oxidetime`。
+
+> 通过 `brew services` 运行时，若需要窗口标题，请在「系统设置 → 隐私与安全性 → 辅助功能」中授予 `oxidetime` 权限并重启服务。
+
+### 从源码运行
 
 要求：macOS、Rust 1.85+（edition 2024）。
 
