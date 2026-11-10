@@ -20,10 +20,18 @@ async fn main() -> anyhow::Result<()> {
         Some(days) => Some((days, demo::seed(&conn, days)?)),
         None => None,
     };
-    let ax_trusted = tracker::macos::ax_trusted();
+    let ax_trusted = if cfg.track {
+        tracker::macos::ax_trusted_with_prompt()
+    } else {
+        tracker::macos::ax_trusted()
+    };
+    let terminal_name = tracker::macos::launch_terminal();
     let status = Arc::new(Mutex::new(model::TrackerStatus {
         running: cfg.track,
         ax_trusted,
+        launch_kind: tracker::macos::launch_kind(&terminal_name).to_string(),
+        terminal_name,
+        exe_path: tracker::macos::exe_path(),
         ..Default::default()
     }));
 

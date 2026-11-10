@@ -51,7 +51,7 @@ brew services start oxidetime   # 或注册为登录时启动的后台服务
 
 常用命令：`brew services stop oxidetime`、`brew services restart oxidetime`。
 
-> 通过 `brew services` 运行时，若需要窗口标题，请在「系统设置 → 隐私与安全性 → 辅助功能」中授予 `oxidetime` 权限并重启服务。
+> 通过 `brew services` 运行时，首次启动会弹出辅助功能授权提示；也可按看板横幅说明在辅助功能列表中手动添加 `oxidetime`。
 
 ### 从源码运行
 
@@ -65,13 +65,12 @@ cargo run --release -- --port 4321
 
 ### 辅助功能权限（可选）
 
-窗口标题依赖 macOS 辅助功能权限：
+窗口标题依赖 macOS 辅助功能权限。首次启动且未授权时，OxideTime 会自动弹出系统授权提示，看板横幅会根据运行方式给出对应步骤：
 
-1. 打开「系统设置 → 隐私与安全性 → 辅助功能」
-2. 勾选运行 OxideTime 的终端（Terminal / iTerm / Ghostty 等）
-3. 重启 OxideTime
+- **从终端直接运行**：允许运行 OxideTime 的终端（Terminal / iTerm / Ghostty / Qoder 等），然后完全退出并重开该终端
+- **通过 `brew services` 运行**：在辅助功能列表中点击「+」，添加 `/opt/homebrew/opt/oxidetime/bin/oxidetime`，然后执行 `brew services restart oxidetime`
 
-未授权时应用名与使用时长仍会正常记录，看板顶部会显示提示横幅。
+未授权时应用名与使用时长仍会正常记录。
 
 ### 演示模式
 

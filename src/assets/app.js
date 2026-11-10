@@ -219,9 +219,27 @@ async function loadStatus() {
     const status = await fetchJSON('/api/status');
     const dismissed = sessionStorage.getItem('ax-banner-dismissed') === '1';
     $('#axBanner').hidden = status.ax_trusted || !status.track_enabled || dismissed;
+    renderAxBanner(status);
   } catch (error) {
     console.error(error);
   }
+}
+
+function renderAxBanner(status) {
+  const text = $('#axBannerText');
+  if (!text) return;
+  const tail = '应用名与时长仍会正常记录。';
+  if (status.launch_kind === 'terminal') {
+    const name = status.terminal_name || '终端';
+    text.textContent = `请在「系统设置 → 隐私与安全性 → 辅助功能」中允许 ${name}，然后完全退出并重开 ${name}。${tail}`;
+    return;
+  }
+  const target = status.exe_path || 'oxidetime';
+  if (status.launch_kind === 'brew') {
+    text.textContent = `OxideTime 正通过 Homebrew 服务运行。请在「系统设置 → 隐私与安全性 → 辅助功能」中点击「+」，添加 ${target}，然后执行 brew services restart oxidetime。${tail}`;
+    return;
+  }
+  text.textContent = `请在「系统设置 → 隐私与安全性 → 辅助功能」中点击「+」，添加 ${target}，然后重启 OxideTime。${tail}`;
 }
 
 async function fetchJSON(url) {

@@ -1,6 +1,7 @@
 use core_foundation::array::CFArray;
 use core_foundation::base::{CFType, TCFType};
-use core_foundation::dictionary::CFDictionary;
+use core_foundation::boolean::CFBoolean;
+use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use objc2::rc::autoreleasepool;
@@ -22,6 +23,7 @@ unsafe extern "C" {
     fn AXUIElementGetPid(element: *mut c_void, pid: *mut i32) -> i32;
     fn AXUIElementSetMessagingTimeout(element: *mut c_void, timeout: f32) -> i32;
     fn AXIsProcessTrusted() -> bool;
+    fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> bool;
 }
 
 #[link(name = "CoreGraphics", kind = "framework")]
@@ -72,6 +74,48 @@ pub fn frontmost() -> Option<FrontApp> {
 
 pub fn ax_trusted() -> bool {
     unsafe { AXIsProcessTrusted() }
+}
+
+pub fn ax_trusted_with_prompt() -> bool {
+    let key = CFString::from_static_string("AXTrustedCheckOptionPrompt");
+    let options = CFDictionary::from_CFType_pairs(&[(key, CFBoolean::true_value())]);
+    unsafe { AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef()) }
+}
+
+pub fn launch_terminal() -> Option<String> {
+    let bundle = std::env::var("__CFBundleIdentifier")
+        .ok()
+        .filter(|value| !value.is_empty())?;
+    Some(match bundle.as_str() {
+        "com.apple.Terminal" => "终端".to_string(),
+        "com.googlecode.iterm2" => "iTerm".to_string(),
+        "com.mitchellh.ghostty" => "Ghostty".to_string(),
+        "com.qoder.app" => "Qoder".to_string(),
+        "dev.zed.Zed" => "Zed".to_string(),
+        "com.microsoft.VSCode" => "VS Code".to_string(),
+        "com.microsoft.VSCodeInsiders" => "VS Code Insiders".to_string(),
+        "dev.warp.Warp-Stable" => "Warp".to_string(),
+        _ => bundle,
+    })
+}
+
+pub fn launch_kind(terminal: &Option<String>) -> &'static str {
+    if terminal.is_some() {
+        return "terminal";
+    }
+    let exe = std::env::current_exe().unwrap_or_default();
+    let exe = exe.to_string_lossy();
+    if exe.contains("/Cellar/") || exe.contains("/homebrew/") {
+        "brew"
+    } else {
+        "other"
+    }
+}
+
+pub fn exe_path() -> String {
+    std::env::current_exe()
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|_| "oxidetime".to_string())
 }
 
 pub fn idle_seconds() -> f64 {
