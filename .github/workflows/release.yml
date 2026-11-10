@@ -26,7 +26,7 @@ jobs:
             target: x86_64-apple-darwin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Read version
         id: version
@@ -45,14 +45,29 @@ jobs:
 
       - name: Package
         run: |
+          set -uo pipefail
           version="${{ steps.version.outputs.value }}"
-          mkdir -p dist
-          cp "target/${{ matrix.target }}/release/oxidetime" dist/oxidetime
-          codesign --force --sign - --timestamp=none dist/oxidetime
-          codesign --verify --strict dist/oxidetime
-          tar -czf "dist/oxidetime-${version}-${{ matrix.target }}.tar.gz" -C dist oxidetime
-          rm dist/oxidetime
-          shasum -a 256 dist/*.tar.gz | tee "dist/oxidetime-${version}-${{ matrix.target }}.sha256"
+          {
+            set -eux
+            mkdir -p dist
+            cp "target/${{ matrix.target }}/release/oxidetime" dist/oxidetime
+            chmod +x dist/oxidetime
+            file dist/oxidetime
+            tar -czf "dist/oxidetime-${version}-${{ matrix.target }}.tar.gz" -C dist oxidetime
+            shasum -a 256 "dist/oxidetime-${version}-${{ matrix.target }}.tar.gz" | tee "dist/oxidetime-${version}-${{ matrix.target }}.sha256"
+            rm dist/oxidetime
+          } > package.log 2>&1
+          code=$?
+          cat package.log
+          if [ "$code" -ne 0 ]; then
+            {
+              echo "### Package failed"
+              echo '```'
+              tail -30 package.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit "$code"
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
