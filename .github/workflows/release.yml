@@ -43,6 +43,9 @@ jobs:
       - name: Test
         run: cargo test --locked --release --target ${{ matrix.target }}
 
+      - name: Build
+        run: cargo build --locked --release --target ${{ matrix.target }}
+
       - name: Package
         run: |
           set -uo pipefail
